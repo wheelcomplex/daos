@@ -58,6 +58,8 @@ enum dtx_entry_flags {
 	 * object modification via standalone update/punch.
 	 */
 	DTE_BLOCK		= (1 << 2),
+	/* For single RDG based transaction. */
+	DTE_SRDG		= (1 << 3),
 };
 
 struct dtx_entry {

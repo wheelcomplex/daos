@@ -1029,6 +1029,8 @@ vos_dtx_alloc(struct umem_instance *umm, struct dtx_handle *dth)
 	DAE_TGT_CNT(dae) = dth->dth_mbs->dm_tgt_cnt;
 	DAE_GRP_CNT(dae) = dth->dth_mbs->dm_grp_cnt;
 	DAE_MBS_DSIZE(dae) = dth->dth_mbs->dm_data_size;
+	if (dth->dth_mbs->dm_flags & DMF_MODIFY_SRDG)
+		DAE_FLAGS(dae) |= DTE_SRDG;
 
 	/* Will be set as dbd::dbd_index via vos_dtx_prepared(). */
 	DAE_INDEX(dae) = DTX_INDEX_INVAL;
