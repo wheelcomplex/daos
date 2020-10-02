@@ -197,29 +197,29 @@ func (srv *IOServerInstance) setRank(ctx context.Context, ready *srvpb.NotifyRea
 			r = system.Rank(0)
 			srv.log.Debugf("marking instance %d as rank 0", srv.Index())
 		}
+	}
 
-		resp, err := srv.msClient.Join(ctx, &mgmtpb.JoinReq{
-			Uuid:  superblock.UUID,
-			Rank:  r.Uint32(),
-			Uri:   ready.Uri,
-			Nctxs: ready.Nctxs,
-			// Addr member populated in msClient
-		})
-		if err != nil {
+	resp, err := srv.msClient.Join(ctx, &mgmtpb.JoinReq{
+		Uuid:  superblock.UUID,
+		Rank:  r.Uint32(),
+		Uri:   ready.Uri,
+		Nctxs: ready.Nctxs,
+		// Addr member populated in msClient
+	})
+	if err != nil {
+		return err
+	} else if resp.State == mgmtpb.JoinResp_OUT {
+		return errors.Errorf("rank %d excluded", resp.Rank)
+	}
+	r = system.Rank(resp.Rank)
+
+	if !superblock.ValidRank {
+		superblock.Rank = new(system.Rank)
+		*superblock.Rank = r
+		superblock.ValidRank = true
+		srv.setSuperblock(superblock)
+		if err := srv.WriteSuperblock(); err != nil {
 			return err
-		} else if resp.State == mgmtpb.JoinResp_OUT {
-			return errors.Errorf("rank %d excluded", resp.Rank)
-		}
-		r = system.Rank(resp.Rank)
-
-		if !superblock.ValidRank {
-			superblock.Rank = new(system.Rank)
-			*superblock.Rank = r
-			superblock.ValidRank = true
-			srv.setSuperblock(superblock)
-			if err := srv.WriteSuperblock(); err != nil {
-				return err
-			}
 		}
 	}
 
