@@ -54,7 +54,7 @@ func PrintNvmeHealthMap(hsm control.HostStorageMap, out io.Writer, opts ...contr
 				return err
 			}
 			iw := txtfmt.NewIndentWriter(out)
-			if err := control.PrintNvmeControllerHealth(controller.HealthStats, iw, opts...); err != nil {
+			if err := control.PrintNvmeHealth(controller.HealthStats, iw, opts...); err != nil {
 				return err
 			}
 			fmt.Fprintln(out)
@@ -148,7 +148,7 @@ func PrintSmdInfoMap(req *control.SmdQueryReq, hsm control.HostStorageMap, out i
 					}
 					if device.Health != nil {
 						iw2 := txtfmt.NewIndentWriter(iw1)
-						if err := control.PrintNvmeControllerHealth(device.Health, iw2, opts...); err != nil {
+						if err := control.PrintNvmeHealth(device.Health, iw2, opts...); err != nil {
 							return err
 						}
 						fmt.Fprintln(out)
