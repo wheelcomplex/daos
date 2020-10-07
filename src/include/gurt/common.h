@@ -73,11 +73,18 @@ extern "C" {
 
 /* memory allocating macros */
 
+int   d_mm_init(size_t n);
+void  d_mm_fini(void);
+void *d_mm_alloc(size_t size);
+void *d_mm_realloc(void *ptr, size_t size);
+void  d_mm_free(void *ptr);
+void  d_mm_flush(void);
+
 #define D_CHECK_ALLOC(func, cond, ptr, name, size, count, cname,	\
 			on_error)					\
 	do {								\
 		if (D_SHOULD_FAIL(d_fault_attr_mem)) {			\
-			free(ptr);					\
+			d_mm_free(ptr);					\
 			ptr = NULL;					\
 		}							\
 		if ((cond) && (ptr) != NULL) {				\
@@ -105,7 +112,7 @@ extern "C" {
 
 #define D_ALLOC_CORE(ptr, size, count)					\
 	do {								\
-		(ptr) = (__typeof__(ptr))calloc(count, (size));		\
+		(ptr) = (__typeof__(ptr))d_mm_alloc((count) * (size));	\
 		D_CHECK_ALLOC(calloc, true, ptr, #ptr, size,		\
 			      count, #count, 0);			\
 	} while (0)
@@ -161,7 +168,7 @@ extern "C" {
 		if (D_SHOULD_FAIL(d_fault_attr_mem))			\
 			newptr = NULL;					\
 		else							\
-			(newptr) = realloc(optr, _sz);			\
+			(newptr) = d_mm_realloc(optr, _sz);		\
 		if ((newptr) != NULL) {					\
 			if ((_cnt) <= 1)				\
 				D_DEBUG(DB_MEM,				\
@@ -195,7 +202,7 @@ extern "C" {
 #define D_FREE(ptr)							\
 	do {								\
 		D_DEBUG(DB_MEM, "free '" #ptr "' at %p.\n", (ptr));	\
-		free(ptr);						\
+		d_mm_free(ptr);						\
 		(ptr) = NULL;						\
 	} while (0)
 
@@ -314,12 +321,6 @@ void d_getenv_bool(const char *env, bool *bool_val);
 void d_getenv_int(const char *env, unsigned int *int_val);
 int d_write_string_buffer(struct d_string_buffer_t *buf, const char *fmt, ...);
 void d_free_string(struct d_string_buffer_t *buf);
-
-int   d_mm_init(size_t n);
-void  d_mm_fini(void);
-void *d_mm_alloc(size_t size);
-void  d_mm_free(void *buff);
-void  d_mm_flush(void);
 
 #if !defined(container_of)
 /* given a pointer @ptr to the field @member embedded into type (usually

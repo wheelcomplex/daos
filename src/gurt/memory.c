@@ -57,14 +57,14 @@ d_mm_init(size_t n)
 	size_t i;
 	int rc;
 
-	if (n < 2 || n >= MM_MAX_NBUCKETS)
+	if (unlikely(n < 2 || n >= MM_MAX_NBUCKETS))
 		D_GOTO(out, rc = -DER_INVAL);
 
-	if (dmm.mm_count != 0)
+	if (unlikely(dmm.mm_count != 0))
 		D_GOTO(out, rc = -DER_ALREADY);
 
-	D_ALLOC_ARRAY(dmm.mm_buckets, n);
-	if (dmm.mm_buckets == NULL)
+	dmm.mm_buckets = malloc(n * sizeof(*dmm.mm_buckets));
+	if (unlikely(dmm.mm_buckets == NULL))
 		D_GOTO(out, rc = -DER_NOMEM);
 
 	for (i = 0; i < n; i++) {
@@ -72,7 +72,7 @@ d_mm_init(size_t n)
 		bucket->mb_count = 0;
 		D_INIT_LIST_HEAD(&bucket->mb_head);
 		rc = D_SPIN_INIT(&bucket->mb_lock, PTHREAD_PROCESS_PRIVATE);
-		if (rc)
+		if (unlikely(rc))
 			D_GOTO(out_free, rc);
 	}
 	dmm.mm_count = n;
@@ -83,7 +83,7 @@ out_free:
 		bucket = &dmm.mm_buckets[--i];
 		D_SPIN_DESTROY(&bucket->mb_lock);
 	}
-	D_FREE(dmm.mm_buckets);
+	free(dmm.mm_buckets);
 out:
 	return rc;
 }
@@ -94,7 +94,7 @@ d_mm_fini(void)
 	struct mm_bucket *bucket;
 	size_t i, count = dmm.mm_count;
 
-	if (count == 0)
+	if (unlikely(count == 0))
 		return;
 
 	d_mm_flush();
@@ -104,7 +104,7 @@ d_mm_fini(void)
 		D_ASSERT(bucket->mb_count == 0);
 		D_SPIN_DESTROY(&bucket->mb_lock);
 	}
-	D_FREE(dmm.mm_buckets);
+	free(dmm.mm_buckets);
 }
 
 void *
@@ -112,44 +112,76 @@ d_mm_alloc(size_t size)
 {
 	struct mm_bucket *bucket;
 	struct mm_item *item = NULL;
+	void *ptr;
 	size_t i, nsize;
 
 	size += sizeof(struct mm_item);
 	for (i = 0, nsize = MM_MIN_SIZE; nsize < size; i++)
 		nsize <<= 1;
 
-	if (i < dmm.mm_count) {
+	if (likely(i < dmm.mm_count)) {
 		bucket = &dmm.mm_buckets[i];
 		D_SPIN_LOCK(&bucket->mb_lock);
 		item = d_list_pop_entry(&bucket->mb_head,
 					struct mm_item, mi_link);
-		if (item != NULL)
+		if (likely(item != NULL))
 			bucket->mb_count--;
 		D_SPIN_UNLOCK(&bucket->mb_lock);
 	}
 
-	if (item == NULL) {
-		D_ALLOC(item, nsize);
-		if (item == NULL)
+	if (unlikely(item == NULL)) {
+		item = malloc(nsize);
+		if (unlikely(item == NULL))
 			return NULL;
 	}
 
 	item->mi_magic  = MM_MAGIC;
 	item->mi_bucket = i;
 
-	return &item->mi_buff[0];
+	ptr = &item->mi_buff[0];
+	memset(ptr, 0, size - sizeof(struct mm_item));
+
+	return ptr;
+}
+
+void *
+d_mm_realloc(void *ptr, size_t size)
+{
+	struct mm_item *item = container_of(ptr, struct mm_item, mi_buff);
+	void *ptr2;
+
+	if (unlikely(ptr == NULL))
+		return d_mm_alloc(size);
+
+	if (unlikely(item->mi_magic != MM_MAGIC))
+		return realloc(ptr, size);
+
+	ptr2 = d_mm_alloc(size);
+	if (unlikely(ptr2 == NULL))
+		return realloc(ptr, size);
+
+	memmove(ptr2, ptr, size);
+
+	d_mm_free(ptr);
+	return ptr2;
 }
 
 void
-d_mm_free(void *buff)
+d_mm_free(void *ptr)
 {
 	struct mm_bucket *bucket;
-	struct mm_item *item = container_of(buff, struct mm_item, mi_buff);
+	struct mm_item *item = container_of(ptr, struct mm_item, mi_buff);
 
-	D_ASSERT(item->mi_magic == MM_MAGIC);
+	if (unlikely(ptr == NULL))
+		return;
 
-	if (item->mi_bucket >= dmm.mm_count) {
-		D_FREE(item);
+	if (unlikely(item->mi_magic != MM_MAGIC)) {
+		free(ptr);
+		return;
+	}
+
+	if (unlikely(item->mi_bucket >= dmm.mm_count)) {
+		free(item);
 		return;
 	}
 
@@ -167,7 +199,7 @@ d_mm_flush(void)
 	struct mm_item *item;
 	size_t i, count = dmm.mm_count;
 
-	if (count == 0)
+	if (unlikely(count == 0))
 		return;
 
 	for (i = 0; i < count; i++) {
@@ -177,7 +209,7 @@ d_mm_flush(void)
 						struct mm_item, mi_link))) {
 			bucket->mb_count--;
 			D_SPIN_UNLOCK(&bucket->mb_lock);
-			D_FREE(item);
+			free(item);
 			D_SPIN_LOCK(&bucket->mb_lock);
 		}
 		D_SPIN_UNLOCK(&bucket->mb_lock);

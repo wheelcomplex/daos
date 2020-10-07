@@ -277,7 +277,7 @@ crt_init_opt(crt_group_id_t grpid, uint32_t flags, crt_init_options_t *opt)
 
 	rc = d_mm_init(9);
 	if (rc && rc != -DER_ALREADY) {
-		D_ERROR("dm_init() failed, rc: %d.\n", rc);
+		D_ERROR("d_mm_init() "DF_RC"\n", DP_RC(rc));
 		D_GOTO(out, rc);
 	}
 
