@@ -42,15 +42,14 @@ crt_corpc_info_init(struct crt_rpc_priv *rpc_priv,
 	D_ASSERT(rpc_priv != NULL);
 	D_ASSERT(grp_priv != NULL);
 
-	co_info = d_mm_alloc(sizeof(*co_info));
+	D_ALLOC_PTR(co_info);
 	if (co_info == NULL)
 		D_GOTO(out, rc = -DER_NOMEM);
-	memset(co_info, 0, sizeof(*co_info));
 
 	rc = d_rank_list_dup_sort_uniq(&co_info->co_filter_ranks, filter_ranks);
 	if (rc != 0) {
 		D_ERROR("d_rank_list_dup failed, rc: %d.\n", rc);
-		d_mm_free(co_info);
+		D_FREE(co_info);
 		D_GOTO(out, rc);
 	}
 	if (!grp_ref_taken)
@@ -101,8 +100,7 @@ crt_corpc_info_fini(struct crt_rpc_priv *rpc_priv)
 	d_rank_list_free(rpc_priv->crp_corpc_info->co_filter_ranks);
 	if (rpc_priv->crp_corpc_info->co_grp_ref_taken)
 		crt_grp_priv_decref(rpc_priv->crp_corpc_info->co_grp_priv);
-	d_mm_free(rpc_priv->crp_corpc_info);
-	rpc_priv->crp_corpc_info = NULL;
+	D_FREE(rpc_priv->crp_corpc_info);
 }
 
 static int

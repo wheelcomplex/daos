@@ -160,7 +160,7 @@ pmem_process_cb_vec(struct umem_tx_stage_item *vec, unsigned int *cnt,
 		return;
 
 	/* @vec & @cnt could be changed by other ULT while txi_fn yielding */
-	txi_arr = d_mm_alloc(sizeof(*txi) * num);
+	D_ALLOC_ARRAY(txi_arr, num);
 	if (txi_arr == NULL) {
 		D_ERROR("Failed to allocate txi array\n");
 		return;
@@ -179,7 +179,7 @@ pmem_process_cb_vec(struct umem_tx_stage_item *vec, unsigned int *cnt,
 		txi->txi_fn(txi->txi_data, noop);
 	}
 
-	d_mm_free(txi_arr);
+	D_FREE(txi_arr);
 }
 
 /*

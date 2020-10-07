@@ -451,7 +451,7 @@ vos_ioc_destroy(struct vos_io_context *ioc, bool evict)
 	vos_ilog_fetch_finish(&ioc->ic_akey_info);
 	vos_cont_decref(ioc->ic_cont);
 	vos_ts_set_free(ioc->ic_ts_set);
-	d_mm_free(ioc);
+	D_FREE(ioc);
 }
 
 static int
@@ -476,10 +476,9 @@ vos_ioc_create(daos_handle_t coh, daos_unit_oid_t oid, bool read_only,
 		goto error;
 	}
 
-	ioc = d_mm_alloc(sizeof(*ioc));
+	D_ALLOC_PTR(ioc);
 	if (ioc == NULL)
 		return -DER_NOMEM;
-	memset(ioc, 0, sizeof(*ioc));
 
 	ioc->ic_iod_nr = iod_nr;
 	ioc->ic_iods = iods;

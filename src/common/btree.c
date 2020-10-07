@@ -253,7 +253,7 @@ btr_context_decref(struct btr_context *tcx)
 	D_ASSERT(tcx->tc_ref > 0);
 	tcx->tc_ref--;
 	if (tcx->tc_ref == 0)
-		d_mm_free(tcx);
+		D_FREE(tcx);
 }
 
 static void
@@ -292,10 +292,9 @@ btr_context_create(umem_off_t root_off, struct btr_root *root,
 	unsigned int		 depth;
 	int			 rc;
 
-	tcx = d_mm_alloc(sizeof(*tcx));
+	D_ALLOC_PTR(tcx);
 	if (tcx == NULL)
 		return -DER_NOMEM;
-	memset(tcx, 0, sizeof(*tcx));
 
 	tcx->tc_ref = 1; /* for the caller */
 	rc = btr_class_init(root_off, root, tree_class, &tree_feats, uma,
