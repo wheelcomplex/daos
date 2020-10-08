@@ -284,7 +284,7 @@ crt_corpc_common_hdlr(struct crt_rpc_priv *rpc_priv)
 			D_GOTO(out, rc);
 		}
 
-		bulk_iov.iov_buf = calloc(1, bulk_len);
+		D_ALLOC(bulk_iov.iov_buf, bulk_len);
 		if (bulk_iov.iov_buf == NULL)
 			D_GOTO(out, rc = -DER_NOMEM);
 		bulk_iov.iov_buf_len = bulk_len;
