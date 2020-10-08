@@ -44,7 +44,7 @@ drpc_connect(char *sockaddr, struct drpc **drpcp)
 void
 mock_drpc_connect_setup(void)
 {
-	D_ALLOC_PTR(drpc_connect_return);
+	DRPC_ALLOC_PTR(drpc_connect_return);
 	memset(drpc_connect_sockaddr, 0, sizeof(drpc_connect_sockaddr));
 }
 
@@ -77,7 +77,7 @@ drpc_call(struct drpc *ctx, int flags, Drpc__Call *msg,
 		memcpy(&drpc_call_msg_content, msg, sizeof(Drpc__Call));
 
 		/* Need a copy of the body data, it's separately allocated */
-		D_ALLOC(drpc_call_msg_content.body.data, msg->body.len);
+		DRPC_ALLOC(drpc_call_msg_content.body.data, msg->body.len);
 		memcpy(drpc_call_msg_content.body.data, msg->body.data,
 				msg->body.len);
 	}
@@ -97,11 +97,11 @@ drpc_call(struct drpc *ctx, int flags, Drpc__Call *msg,
 		 * Need to allocate a new copy to return - the
 		 * production code will free the returned memory.
 		 */
-		D_ALLOC_PTR(*resp);
+		DRPC_ALLOC_PTR(*resp);
 		memcpy(*resp, &drpc_call_resp_return_content,
 				sizeof(Drpc__Response));
 
-		D_ALLOC((*resp)->body.data, data_len);
+		DRPC_ALLOC((*resp)->body.data, data_len);
 		memcpy((*resp)->body.data,
 				drpc_call_resp_return_content.body.data,
 				data_len);
@@ -164,14 +164,14 @@ free_drpc_connect_return(void)
 void
 free_drpc_call_msg_body(void)
 {
-	D_FREE(drpc_call_msg_content.body.data);
+	DRPC_FREE(drpc_call_msg_content.body.data);
 	drpc_call_msg_content.body.len = 0;
 }
 
 void
 free_drpc_call_resp_body(void)
 {
-	D_FREE(drpc_call_resp_return_content.body.data);
+	DRPC_FREE(drpc_call_resp_return_content.body.data);
 	drpc_call_resp_return_content.body.len = 0;
 }
 
@@ -181,10 +181,10 @@ pack_get_cred_resp_in_drpc_call_resp_body(Auth__GetCredResp *resp)
 	size_t	len = auth__get_cred_resp__get_packed_size(resp);
 	uint8_t	*body;
 
-	D_FREE(drpc_call_resp_return_content.body.data);
+	DRPC_FREE(drpc_call_resp_return_content.body.data);
 
 	drpc_call_resp_return_content.body.len = len;
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	auth__get_cred_resp__pack(resp, body);
 	drpc_call_resp_return_content.body.data = body;
 }
@@ -195,10 +195,10 @@ pack_validate_resp_in_drpc_call_resp_body(Auth__ValidateCredResp *resp)
 	size_t	len = auth__validate_cred_resp__get_packed_size(resp);
 	uint8_t	*body;
 
-	D_FREE(drpc_call_resp_return_content.body.data);
+	DRPC_FREE(drpc_call_resp_return_content.body.data);
 
 	drpc_call_resp_return_content.body.len = len;
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	auth__validate_cred_resp__pack(resp, body);
 	drpc_call_resp_return_content.body.data = body;
 }

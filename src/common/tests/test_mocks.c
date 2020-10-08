@@ -404,7 +404,7 @@ mock_drpc_handler(Drpc__Call *call, Drpc__Response *resp)
 				sizeof(Drpc__Response));
 		resp->body.len = len;
 		if (len > 0) {
-			D_ALLOC(resp->body.data, len);
+			DRPC_ALLOC(resp->body.data, len);
 			memcpy(resp->body.data,
 				mock_drpc_handler_resp_return->body.data, len);
 		}

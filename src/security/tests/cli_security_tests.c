@@ -62,10 +62,10 @@ char *dc_agent_sockpath;
 static void
 init_default_drpc_resp_auth_credential(void)
 {
-	D_ALLOC_PTR(drpc_call_resp_return_auth_credential);
+	DRPC_ALLOC_PTR(drpc_call_resp_return_auth_credential);
 	auth__credential__init(drpc_call_resp_return_auth_credential);
 
-	D_ALLOC_PTR(drpc_call_resp_return_auth_credential->token);
+	DRPC_ALLOC_PTR(drpc_call_resp_return_auth_credential->token);
 	auth__token__init(drpc_call_resp_return_auth_credential->token);
 }
 
@@ -282,7 +282,7 @@ test_request_credentials_fails_if_reply_body_malformed(void **state)
 
 	memset(&creds, 0, sizeof(d_iov_t));
 	free_drpc_call_resp_body();
-	D_ALLOC(drpc_call_resp_return_content.body.data, 1);
+	DRPC_ALLOC(drpc_call_resp_return_content.body.data, 1);
 	drpc_call_resp_return_content.body.len = 1;
 
 	assert_int_equal(dc_sec_request_creds(&creds), -DER_PROTO);

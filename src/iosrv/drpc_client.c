@@ -58,7 +58,7 @@ notify_ready(void)
 	req.ntgts = dss_tgt_nr;
 
 	reqb_size = srv__notify_ready_req__get_packed_size(&req);
-	D_ALLOC(reqb, reqb_size);
+	DRPC_ALLOC(reqb, reqb_size);
 	if (reqb == NULL)
 		D_GOTO(out_uri, rc = -DER_NOMEM);
 
@@ -125,7 +125,7 @@ notify_bio_error(int media_err_type, int tgt_id)
 	bioerr_req.drpclistenersock = drpc_listener_socket_path;
 
 	req_size = srv__bio_error_req__get_packed_size(&bioerr_req);
-	D_ALLOC(req, req_size);
+	DRPC_ALLOC(req, req_size);
 	if (req == NULL)
 		return -DER_NOMEM;
 

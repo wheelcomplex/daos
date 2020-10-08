@@ -67,7 +67,7 @@ new_drpc_call_with_module(int module_id)
 {
 	Drpc__Call *call;
 
-	D_ALLOC_PTR(call);
+	DRPC_ALLOC_PTR(call);
 
 	drpc__call__init(call);
 	call->module = module_id;
@@ -94,7 +94,7 @@ new_drpc_response(void)
 {
 	Drpc__Response *resp;
 
-	D_ALLOC_PTR(resp);
+	DRPC_ALLOC_PTR(resp);
 
 	drpc__response__init(resp);
 	resp->status = DRPC__STATUS__FAILURE;

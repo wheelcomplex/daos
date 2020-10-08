@@ -60,7 +60,7 @@ main(int argc, char **argv)
 	body.name = argv[2];
 
 	body_buffer_length = hello__hello__get_packed_size(&body);
-	D_ALLOC(body_buffer, body_buffer_length);
+	DRPC_ALLOC(body_buffer, body_buffer_length);
 	if (!body_buffer) {
 		fprintf(stderr, "Unable to allocate buffer for call body\n");
 		exit(1);

@@ -326,7 +326,7 @@ get_attach_info(const char *name, int *npsrs, struct dc_mgmt_psr **psrs,
 	/* Prepare the GetAttachInfo request. */
 	req.sys = (char *)name;
 	reqb_size = mgmt__get_attach_info_req__get_packed_size(&req);
-	D_ALLOC(reqb, reqb_size);
+	DRPC_ALLOC(reqb, reqb_size);
 	if (reqb == NULL) {
 		rc = -DER_NOMEM;
 		goto out_ctx;

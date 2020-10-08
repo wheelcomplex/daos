@@ -45,7 +45,7 @@ daos_drpc_alloc(void *arg, size_t size)
 	struct drpc_alloc *alloc = arg;
 	void *buf;
 
-	D_ALLOC(buf, size);
+	DRPC_ALLOC(buf, size);
 	if (!buf)
 		alloc->oom = true;
 	return buf;
@@ -54,7 +54,7 @@ daos_drpc_alloc(void *arg, size_t size)
 void
 daos_drpc_free(void *allocater_data, void *pointer)
 {
-	D_FREE(pointer);
+	DRPC_FREE(pointer);
 }
 
 /**
@@ -82,7 +82,7 @@ drpc_call_create(struct drpc *ctx, int32_t module, int32_t method,
 		return -DER_INVAL;
 	}
 
-	D_ALLOC_PTR(call);
+	DRPC_ALLOC_PTR(call);
 	if (call == NULL)
 		return -DER_NOMEM;
 
@@ -122,7 +122,7 @@ drpc_response_create(Drpc__Call *call)
 {
 	Drpc__Response *resp;
 
-	D_ALLOC_PTR(resp);
+	DRPC_ALLOC_PTR(resp);
 	if (resp == NULL)
 		return NULL;
 

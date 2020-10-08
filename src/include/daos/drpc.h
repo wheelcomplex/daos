@@ -27,6 +27,54 @@
 #include <daos/drpc.pb-c.h>
 #include <daos/common.h>
 
+#define DRPC_CHECK_ALLOC(func, cond, ptr, name, size, count, cname,	\
+			on_error)					\
+	do {								\
+		if (D_SHOULD_FAIL(d_fault_attr_mem)) {			\
+			free(ptr);					\
+			ptr = NULL;					\
+		}							\
+		if ((cond) && (ptr) != NULL) {				\
+			if (count <= 1)					\
+				D_DEBUG(DB_MEM,				\
+					"alloc(" #func ") '" name "': %i at %p.\n", \
+					(int)(size), (ptr));		\
+			else						\
+				D_DEBUG(DB_MEM,				\
+					"alloc(" #func ") '" name "': %i * '" cname "':%i at %p.\n", \
+					(int)(size), (int)(count), (ptr)); \
+			break;						\
+		}							\
+		(void)(on_error);					\
+		if (count >= 1)						\
+			D_ERROR("out of memory (tried to "		\
+				#func " '" name "': %i)\n",		\
+				(int)((size) * (count)));		\
+		else							\
+			D_ERROR("out of memory (tried to "		\
+				#func " '" name "': %i)\n",		\
+				(int)(size));				\
+	} while (0)
+
+
+#define DRPC_ALLOC_CORE(ptr, size, count)				\
+	do {								\
+		(ptr) = (__typeof__(ptr))calloc((count), (size));	\
+		DRPC_CHECK_ALLOC(calloc, true, ptr, #ptr, size,		\
+			      count, #count, 0);			\
+	} while (0)
+
+#define DRPC_FREE(ptr)							\
+	do {								\
+		D_DEBUG(DB_MEM, "free '" #ptr "' at %p.\n", (ptr));	\
+		free(ptr);						\
+		(ptr) = NULL;						\
+	} while (0)
+
+#define DRPC_ALLOC(ptr, size)	DRPC_ALLOC_CORE(ptr, size, 1)
+#define DRPC_ALLOC_PTR(ptr)	DRPC_ALLOC(ptr, sizeof(*ptr))
+#define DRPC_ALLOC_ARRAY(ptr, count) DRPC_ALLOC_CORE(ptr, sizeof(*ptr), count)
+
 /*
  * Using a packetsocket over the unix domain socket means that we receive
  * a whole message at a time without knowing its size. So for this reason

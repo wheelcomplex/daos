@@ -58,11 +58,11 @@ create_valid_auth_token(const char *user, const char *grp,
 	Auth__Token	*token;
 	Auth__Sys	*authsys;
 
-	D_ALLOC_PTR(token);
+	DRPC_ALLOC_PTR(token);
 	auth__token__init(token);
 	token->flavor = AUTH__FLAVOR__AUTH_SYS;
 
-	D_ALLOC_PTR(authsys);
+	DRPC_ALLOC_PTR(authsys);
 	auth__sys__init(authsys);
 	D_STRNDUP(authsys->user, user, DAOS_ACL_MAX_PRINCIPAL_LEN);
 	D_STRNDUP(authsys->group, grp, DAOS_ACL_MAX_PRINCIPAL_LEN);
@@ -72,7 +72,7 @@ create_valid_auth_token(const char *user, const char *grp,
 
 		authsys->n_groups = num_grps;
 
-		D_ALLOC_ARRAY(authsys->groups, num_grps);
+		DRPC_ALLOC_ARRAY(authsys->groups, num_grps);
 		for (i = 0; i < num_grps; i++) {
 			D_STRNDUP(authsys->groups[i], grp_list[i],
 					DAOS_ACL_MAX_PRINCIPAL_LEN);
@@ -80,7 +80,7 @@ create_valid_auth_token(const char *user, const char *grp,
 	}
 
 	token->data.len = auth__sys__get_packed_size(authsys);
-	D_ALLOC(token->data.data, token->data.len);
+	DRPC_ALLOC(token->data.data, token->data.len);
 	auth__sys__pack(authsys, token->data.data);
 
 	auth__sys__free_unpacked(authsys, NULL);
@@ -109,7 +109,7 @@ init_valid_cred(d_iov_t *cred, const char *user, const char *grp,
 	/* Initialize the cred with token */
 	new_cred.token = token;
 	buf_len = auth__credential__get_packed_size(&new_cred);
-	D_ALLOC(buf, buf_len);
+	DRPC_ALLOC(buf, buf_len);
 	auth__credential__pack(&new_cred, buf);
 	d_iov_set(cred, buf, buf_len);
 
@@ -349,7 +349,7 @@ test_validate_creds_drpc_response_malformed_body(void **state)
 	init_default_cred(&cred);
 
 	free_drpc_call_resp_body();
-	D_ALLOC(drpc_call_resp_return_content.body.data, 1);
+	DRPC_ALLOC(drpc_call_resp_return_content.body.data, 1);
 	drpc_call_resp_return_content.body.len = 1;
 
 	assert_int_equal(ds_sec_validate_credentials(&cred, &result),

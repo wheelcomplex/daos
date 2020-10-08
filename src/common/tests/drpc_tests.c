@@ -307,7 +307,7 @@ test_drpc_call_with_sync_flag_gets_socket_response(void **state)
 	/* Actual contents of the message are arbitrary - just needs to be
 	 * identifiable.
 	 */
-	D_ALLOC_PTR(expected_resp);
+	DRPC_ALLOC_PTR(expected_resp);
 	drpc__response__init(expected_resp);
 	expected_resp->sequence = 12345;
 	expected_resp->status = DRPC__STATUS__FAILURE;

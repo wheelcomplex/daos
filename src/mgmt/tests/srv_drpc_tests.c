@@ -63,11 +63,11 @@ new_drpc_call_with_bad_body(void)
 	size_t		bad_bytes_len = 16; /* arbitrary */
 	size_t		i;
 
-	D_ALLOC(call, sizeof(Drpc__Call));
+	DRPC_ALLOC_PTR(call);
 	assert_non_null(call);
 	drpc__call__init(call);
 
-	D_ALLOC_ARRAY(bad_bytes, bad_bytes_len);
+	DRPC_ALLOC(bad_bytes, bad_bytes_len);
 	assert_non_null(bad_bytes);
 
 	/* Fill out with junk that won't translate to a PB struct */
@@ -233,7 +233,7 @@ pack_get_acl_req(Drpc__Call *call, Mgmt__GetACLReq *req)
 	uint8_t	*body;
 
 	len = mgmt__get_aclreq__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__get_aclreq__pack(req, body);
@@ -280,8 +280,8 @@ test_drpc_pool_get_acl_bad_uuid(void **state)
 
 	expect_drpc_acl_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -297,8 +297,8 @@ test_drpc_pool_get_acl_mgmt_svc_fails(void **state)
 
 	expect_drpc_acl_resp_with_error(&resp, ds_mgmt_pool_get_acl_return);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -324,8 +324,8 @@ test_drpc_pool_get_acl_cant_translate_acl(void **state)
 	expect_drpc_acl_resp_with_error(&resp, -DER_INVAL);
 
 	daos_acl_free(acl);
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -364,8 +364,8 @@ test_drpc_pool_get_acl_success(void **state)
 
 	expect_drpc_acl_resp_success(&resp, TEST_ACES, TEST_ACES_NR);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -379,7 +379,7 @@ pack_modify_acl_req(Drpc__Call *call, Mgmt__ModifyACLReq *req)
 	uint8_t	*body;
 
 	len = mgmt__modify_aclreq__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__modify_aclreq__pack(req, body);
@@ -414,8 +414,8 @@ test_drpc_pool_overwrite_acl_bad_uuid(void **state)
 
 	expect_drpc_acl_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -433,8 +433,8 @@ test_drpc_pool_overwrite_acl_bad_acl(void **state)
 
 	expect_drpc_acl_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -451,8 +451,8 @@ test_drpc_pool_overwrite_acl_mgmt_svc_fails(void **state)
 	expect_drpc_acl_resp_with_error(&resp,
 					ds_mgmt_pool_overwrite_acl_return);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -473,8 +473,8 @@ test_drpc_pool_overwrite_acl_success(void **state)
 
 	expect_drpc_acl_resp_success(&resp, TEST_ACES, TEST_ACES_NR);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -494,8 +494,8 @@ test_drpc_pool_update_acl_bad_uuid(void **state)
 
 	expect_drpc_acl_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -513,8 +513,8 @@ test_drpc_pool_update_acl_bad_acl(void **state)
 
 	expect_drpc_acl_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -530,8 +530,8 @@ test_drpc_pool_update_acl_mgmt_svc_fails(void **state)
 
 	expect_drpc_acl_resp_with_error(&resp, ds_mgmt_pool_update_acl_return);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -552,8 +552,8 @@ test_drpc_pool_update_acl_success(void **state)
 
 	expect_drpc_acl_resp_success(&resp, TEST_ACES, TEST_ACES_NR);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -567,7 +567,7 @@ pack_delete_acl_req(Drpc__Call *call, Mgmt__DeleteACLReq *req)
 	uint8_t	*body;
 
 	len = mgmt__delete_aclreq__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__delete_aclreq__pack(req, body);
@@ -599,8 +599,8 @@ test_drpc_pool_delete_acl_bad_uuid(void **state)
 
 	expect_drpc_acl_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -616,8 +616,8 @@ test_drpc_pool_delete_acl_mgmt_svc_fails(void **state)
 
 	expect_drpc_acl_resp_with_error(&resp, ds_mgmt_pool_delete_acl_return);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -634,8 +634,8 @@ test_drpc_pool_delete_acl_success(void **state)
 
 	expect_drpc_acl_resp_success(&resp, TEST_ACES, TEST_ACES_NR);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -672,7 +672,7 @@ setup_list_pools_drpc_call(Drpc__Call *call, char *sys_name)
 	req.sys = sys_name;
 
 	len = mgmt__list_pools_req__get_packed_size(&req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__list_pools_req__pack(&req, body);
@@ -713,8 +713,8 @@ test_drpc_list_pools_mgmt_svc_fails(void **state)
 	expect_drpc_list_pools_resp_with_error(&resp,
 					       ds_mgmt_list_pools_return);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -732,8 +732,8 @@ test_drpc_list_pools_svc_results_invalid(void **state)
 
 	expect_drpc_list_pools_resp_with_error(&resp, -DER_MISC);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -788,8 +788,8 @@ test_drpc_list_pools_success_no_pools(void **state)
 	assert_non_null(ds_mgmt_list_pools_poolsp_ptr);
 	assert_non_null(ds_mgmt_list_pools_len_ptr);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -812,8 +812,8 @@ test_drpc_list_pools_success_with_pools(void **state)
 					       ds_mgmt_list_pools_poolsp_out,
 					       ds_mgmt_list_pools_len_out);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -846,7 +846,7 @@ pack_list_cont_req(Drpc__Call *call, Mgmt__ListContReq *req)
 	uint8_t	*body;
 
 	len = mgmt__list_cont_req__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__list_cont_req__pack(req, body);
@@ -921,8 +921,8 @@ test_drpc_pool_list_cont_bad_uuid(void **state)
 
 	expect_drpc_list_cont_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -939,8 +939,8 @@ test_drpc_pool_list_cont_mgmt_svc_fails(void **state)
 	expect_drpc_list_cont_resp_with_error(&resp,
 					      ds_mgmt_pool_list_cont_return);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -955,8 +955,8 @@ test_drpc_pool_list_cont_no_containers(void **state)
 
 	expect_drpc_list_cont_resp_with_containers(&resp, NULL, 0);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -975,8 +975,8 @@ test_drpc_pool_list_cont_with_containers(void **state)
 						   ds_mgmt_pool_list_cont_out,
 						   ncont);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -1010,7 +1010,7 @@ setup_pool_set_prop_drpc_call(Drpc__Call *call, Mgmt__PoolSetPropReq *req)
 	uint8_t			*body;
 
 	len = mgmt__pool_set_prop_req__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__pool_set_prop_req__pack(req, body);
@@ -1053,8 +1053,8 @@ test_drpc_pool_set_prop_invalid_property_type(void **state)
 
 	expect_drpc_pool_set_prop_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1073,8 +1073,8 @@ test_drpc_pool_set_prop_invalid_value_type(void **state)
 
 	expect_drpc_pool_set_prop_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1093,8 +1093,8 @@ test_drpc_pool_set_prop_bad_uuid(void **state)
 
 	expect_drpc_pool_set_prop_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1142,8 +1142,8 @@ test_drpc_pool_set_prop_success(void **state)
 
 	expect_drpc_pool_set_prop_resp_success(&resp, prop_number, val_number);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -1166,7 +1166,7 @@ pack_pool_query_req(Drpc__Call *call, Mgmt__PoolQueryReq *req)
 	uint8_t	*body;
 
 	len = mgmt__pool_query_req__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__pool_query_req__pack(req, body);
@@ -1212,8 +1212,8 @@ test_drpc_pool_query_bad_uuid(void **state)
 
 	expect_drpc_pool_query_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1230,8 +1230,8 @@ test_drpc_pool_query_mgmt_svc_fails(void **state)
 	expect_drpc_pool_query_resp_with_error(&resp,
 					       ds_mgmt_pool_query_return);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1355,8 +1355,8 @@ test_drpc_pool_query_success(void **state)
 				    MGMT__POOL_REBUILD_STATUS__STATE__IDLE,
 				    &resp);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1379,8 +1379,8 @@ test_drpc_pool_query_success_rebuild_busy(void **state)
 				    MGMT__POOL_REBUILD_STATUS__STATE__BUSY,
 				    &resp);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1404,8 +1404,8 @@ test_drpc_pool_query_success_rebuild_done(void **state)
 				    MGMT__POOL_REBUILD_STATUS__STATE__DONE,
 				    &resp);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1435,8 +1435,8 @@ test_drpc_pool_query_success_rebuild_err(void **state)
 				    MGMT__POOL_REBUILD_STATUS__STATE__IDLE,
 				    &resp);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -1465,7 +1465,7 @@ pack_pool_create_req(Mgmt__PoolCreateReq *req, Drpc__Call *call)
 	uint8_t	*body;
 
 	len = mgmt__pool_create_req__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__pool_create_req__pack(req, body);
@@ -1509,8 +1509,8 @@ test_drpc_pool_create_invalid_acl(void **state)
 		D_FREE(bad_acl[i]);
 	}
 	D_FREE(bad_acl);
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 
 }
 
@@ -1534,7 +1534,7 @@ pack_pool_exclude_req(Drpc__Call *call, Mgmt__PoolExcludeReq *req)
 	uint8_t	*body;
 
 	len = mgmt__pool_exclude_req__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__pool_exclude_req__pack(req, body);
@@ -1583,8 +1583,8 @@ test_drpc_exclude_bad_uuid(void **state)
 
 	expect_drpc_exclude_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1600,8 +1600,8 @@ test_drpc_exclude_mgmt_svc_fails(void **state)
 	expect_drpc_exclude_resp_with_error(&resp,
 					       ds_mgmt_target_update_return);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1615,8 +1615,8 @@ test_drpc_exclude_success(void **state)
 
 	expect_drpc_exclude_resp_with_error(&resp, 0);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -1639,7 +1639,7 @@ pack_pool_drain_req(Drpc__Call *call, Mgmt__PoolDrainReq *req)
 	uint8_t	*body;
 
 	len = mgmt__pool_drain_req__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__pool_drain_req__pack(req, body);
@@ -1688,8 +1688,8 @@ test_drpc_drain_bad_uuid(void **state)
 
 	expect_drpc_drain_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1705,8 +1705,8 @@ test_drpc_drain_mgmt_svc_fails(void **state)
 	expect_drpc_drain_resp_with_error(&resp,
 					       ds_mgmt_target_update_return);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1720,8 +1720,8 @@ test_drpc_drain_success(void **state)
 
 	expect_drpc_drain_resp_with_error(&resp, 0);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -1744,7 +1744,7 @@ pack_pool_extend_req(Drpc__Call *call, Mgmt__PoolExtendReq *req)
 	uint8_t	*body;
 
 	len = mgmt__pool_extend_req__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__pool_extend_req__pack(req, body);
@@ -1793,8 +1793,8 @@ test_drpc_extend_bad_uuid(void **state)
 
 	expect_drpc_extend_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1809,8 +1809,8 @@ test_drpc_extend_mgmt_svc_fails(void **state)
 	ds_mgmt_drpc_pool_extend(&call, &resp);
 	expect_drpc_extend_resp_with_error(&resp, ds_mgmt_pool_extend_return);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1824,8 +1824,8 @@ test_drpc_extend_success(void **state)
 
 	expect_drpc_extend_resp_with_error(&resp, 0);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -1838,7 +1838,7 @@ pack_pool_reintegrate_req(Drpc__Call *call, Mgmt__PoolReintegrateReq *req)
 	uint8_t	*body;
 
 	len = mgmt__pool_reintegrate_req__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__pool_reintegrate_req__pack(req, body);
@@ -1884,8 +1884,8 @@ test_drpc_reintegrate_bad_uuid(void **state)
 
 	expect_drpc_reintegrate_resp_with_error(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -1908,7 +1908,7 @@ pack_pool_evict_req(Drpc__Call *call, Mgmt__PoolEvictReq *req)
 	uint8_t	*body;
 
 	len = mgmt__pool_evict_req__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__pool_evict_req__pack(req, body);
@@ -1955,8 +1955,8 @@ test_drpc_pool_evict_bad_uuid(void **state)
 
 	expect_drpc_evict_resp_with_status(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 	static void
@@ -1972,8 +1972,8 @@ test_drpc_pool_evict_mgmt_svc_fails(void **state)
 	expect_drpc_evict_resp_with_status(&resp,
 					       ds_mgmt_pool_evict_return);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -1987,8 +1987,8 @@ test_drpc_pool_evict_success(void **state)
 
 	expect_drpc_evict_resp_with_status(&resp, 0);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -2020,7 +2020,7 @@ pack_ping_rank_req(Mgmt__PingRankReq *req, Drpc__Call *call)
 	uint8_t	*body;
 
 	len = mgmt__ping_rank_req__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__ping_rank_req__pack(req, body);
@@ -2042,8 +2042,8 @@ test_drpc_ping_rank_success(void **state)
 
 	expect_daos_resp_with_der(&resp, 0);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 
 }
 
@@ -2057,7 +2057,7 @@ pack_prep_shutdown_req(Mgmt__PrepShutdownReq *req, Drpc__Call *call)
 	uint8_t	*body;
 
 	len = mgmt__prep_shutdown_req__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__prep_shutdown_req__pack(req, body);
@@ -2079,8 +2079,8 @@ test_drpc_prep_shutdown_success(void **state)
 
 	expect_daos_resp_with_der(&resp, 0);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 /*
@@ -2114,7 +2114,7 @@ setup_cont_set_owner_drpc_call(Drpc__Call *call, Mgmt__ContSetOwnerReq *req)
 	uint8_t	*body;
 
 	len = mgmt__cont_set_owner_req__get_packed_size(req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	assert_non_null(body);
 
 	mgmt__cont_set_owner_req__pack(req, body);
@@ -2158,8 +2158,8 @@ test_drpc_cont_set_owner_bad_pool_uuid(void **state)
 
 	expect_drpc_cont_set_owner_resp_with_status(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -2180,8 +2180,8 @@ test_drpc_cont_set_owner_bad_cont_uuid(void **state)
 
 	expect_drpc_cont_set_owner_resp_with_status(&resp, -DER_INVAL);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -2204,8 +2204,8 @@ test_drpc_cont_set_owner_failed(void **state)
 
 	expect_drpc_cont_set_owner_resp_with_status(&resp, exp_rc);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 static void
@@ -2245,8 +2245,8 @@ test_drpc_cont_set_owner_success(void **state)
 	assert_non_null(ds_mgmt_cont_set_owner_group);
 	assert_string_equal(req.ownergroup, ds_mgmt_cont_set_owner_group);
 
-	D_FREE(call.body.data);
-	D_FREE(resp.body.data);
+	DRPC_FREE(call.body.data);
+	DRPC_FREE(resp.body.data);
 }
 
 #define ACL_TEST(x)	cmocka_unit_test_setup_teardown(x, \

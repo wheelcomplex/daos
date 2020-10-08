@@ -212,7 +212,7 @@ new_validation_request(struct drpc *ctx, d_iov_t *creds, Drpc__Call **callp)
 	req.cred = cred;
 
 	len = auth__validate_cred_req__get_packed_size(&req);
-	D_ALLOC(body, len);
+	DRPC_ALLOC(body, len);
 	if (body == NULL) {
 		drpc_call_free(request);
 		auth__credential__free_unpacked(cred, &alloc.alloc);
