@@ -30,6 +30,7 @@ from apricot import TestWithServers
 from mpio_utils import MpioUtils, MpioFailed
 from test_utils_pool import TestPool
 from daos_utils import DaosCommand
+from env_modules import load_mpi
 
 
 class MpiioTests(TestWithServers):
@@ -96,6 +97,9 @@ class MpiioTests(TestWithServers):
 
         # initialize test specific variables
         client_processes = self.params.get("np", '/run/client_processes/')
+
+        # Required to run daos command
+        load_mpi("openmpi")
 
         # create container
         self._create_cont()

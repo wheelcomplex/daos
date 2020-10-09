@@ -50,7 +50,7 @@ class MpioUtils():
             bool: whether mpich is installed on the first host in the list
 
         """
-        load_mpi('openmpi')
+        load_mpi('mpich')
 
         # checking mpich install
         cmd = "set -e; "                                                \
