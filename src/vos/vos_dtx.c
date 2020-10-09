@@ -586,9 +586,11 @@ dtx_rec_release(struct vos_container *cont, struct vos_dtx_act_ent *dae,
 	int				 i;
 	int				 rc = 0;
 
-	D_ASSERT(DAE_INDEX(dae) >= 0);
+	if (DAE_INDEX(dae) == DTX_INDEX_INVAL)
+		return 0;
 
 	dbd = dae->dae_dbd;
+	D_ASSERT(dbd != NULL);
 	D_ASSERT(dbd->dbd_magic == DTX_ACT_BLOB_MAGIC);
 
 	dae_df = umem_off2ptr(umm, dae->dae_df_off);
@@ -787,6 +789,12 @@ vos_dtx_commit_one(struct vos_container *cont, struct dtx_id *dti,
 			/* Only the leader_oid is modified by the DTX.*/
 			DCE_OID_CNT(dce) = 1;
 		}
+
+		if (DAE_INDEX(dae) == DTX_INDEX_INVAL) {
+			D_ASSERT(umoff_is_null(DCE_OID_OFF(dce)));
+
+			dce->dce_rdonly = 1;
+		}
 	} else {
 		struct dtx_handle	*dth = vos_dth_get();
 
@@ -984,12 +992,11 @@ vos_dtx_extend_act_table(struct vos_container *cont)
 }
 
 static int
-vos_dtx_alloc(struct umem_instance *umm, struct dtx_handle *dth)
+vos_dtx_alloc(struct dtx_handle *dth, struct vos_dtx_blob_df *dbd)
 {
 	struct vos_dtx_act_ent		*dae = NULL;
 	struct vos_container		*cont;
 	struct vos_cont_df		*cont_df;
-	struct vos_dtx_blob_df		*dbd;
 	uint32_t			 idx;
 	d_iov_t				 kiov;
 	d_iov_t				 riov;
@@ -1006,15 +1013,6 @@ vos_dtx_alloc(struct umem_instance *umm, struct dtx_handle *dth)
 		if (rc == -DER_BUSY)
 			return -DER_INPROGRESS;
 		return rc;
-	}
-
-	dbd = umem_off2ptr(umm, cont_df->cd_dtx_active_tail);
-	if (dbd == NULL || dbd->dbd_index >= dbd->dbd_cap) {
-		rc = vos_dtx_extend_act_table(cont);
-		if (rc != 0)
-			goto out;
-
-		dbd = umem_off2ptr(umm, cont_df->cd_dtx_active_tail);
 	}
 
 	DAE_LID(dae) = idx + DTX_LID_RESERVED;
@@ -1034,11 +1032,17 @@ vos_dtx_alloc(struct umem_instance *umm, struct dtx_handle *dth)
 	/* Will be set as dbd::dbd_index via vos_dtx_prepared(). */
 	DAE_INDEX(dae) = DTX_INDEX_INVAL;
 
-	dae->dae_df_off = cont_df->cd_dtx_active_tail +
+	if (dbd != NULL) {
+		D_ASSERT(dbd->dbd_magic == DTX_ACT_BLOB_MAGIC);
+
+		dae->dae_df_off = cont_df->cd_dtx_active_tail +
 			offsetof(struct vos_dtx_blob_df, dbd_active_data) +
 			sizeof(struct vos_dtx_act_ent_df) * dbd->dbd_index;
+	} else {
+		dae->dae_df_off = UMOFF_NULL;
+	}
+
 	dae->dae_dbd = dbd;
-	D_ASSERT(dbd->dbd_magic == DTX_ACT_BLOB_MAGIC);
 	D_DEBUG(DB_IO, "Allocated new lid DTX: "DF_DTI" lid=%d dae=%p"
 		" dae_dbd=%p\n", DP_DTI(&dth->dth_xid), DAE_LID(dae), dae, dbd);
 
@@ -1051,7 +1055,6 @@ vos_dtx_alloc(struct umem_instance *umm, struct dtx_handle *dth)
 		dth->dth_active = 1;
 	}
 
-out:
 	if (rc != 0)
 		dtx_evict_lid(cont, dae);
 
@@ -1262,9 +1265,24 @@ vos_dtx_register_record(struct umem_instance *umm, umem_off_t record,
 	}
 
 	if (dth->dth_ent == NULL) {
-		rc = vos_dtx_alloc(umm, dth);
+		struct vos_dtx_blob_df	*dbd;
+		struct vos_container	*cont;
+		struct vos_cont_df	*cont_df;
+
+		cont = vos_hdl2cont(dth->dth_coh);
+		cont_df = cont->vc_cont_df;
+		dbd = umem_off2ptr(umm, cont_df->cd_dtx_active_tail);
+		if (dbd == NULL || dbd->dbd_index >= dbd->dbd_cap) {
+			rc = vos_dtx_extend_act_table(cont);
+			if (rc != 0)
+				goto out;
+
+			dbd = umem_off2ptr(umm, cont_df->cd_dtx_active_tail);
+		}
+
+		rc = vos_dtx_alloc(dth, dbd);
 		if (rc != 0)
-			return rc;
+			goto out;
 	}
 
 	rc = vos_dtx_append(dth, record, type);
@@ -1277,6 +1295,7 @@ vos_dtx_register_record(struct umem_instance *umm, umem_off_t record,
 			dth->dth_modify_shared = 1;
 	}
 
+out:
 	D_DEBUG(DB_TRACE, "Register DTX record for "DF_DTI
 		": lid=%d entry %p, type %d, %s ilog entry, rc %d\n",
 		DP_DTI(&dth->dth_xid),
@@ -1610,7 +1629,7 @@ again:
 		if (rc1 == 0)
 			rc1 = rc;
 
-		if (dce != NULL) {
+		if (dce != NULL && !dce->dce_rdonly) {
 			if (slots == 1)
 				pmem_memcpy_nodrain(dce_df, &dce->dce_base,
 						    sizeof(*dce_df));
@@ -1719,7 +1738,7 @@ new_blob:
 		if (rc1 == 0)
 			rc1 = rc;
 
-		if (dce != NULL) {
+		if (dce != NULL && !dce->dce_rdonly) {
 			memcpy(&dce_df[j], &dce->dce_base, sizeof(dce_df[j]));
 			j++;
 		}
@@ -1878,14 +1897,18 @@ vos_dtx_aggregate(daos_handle_t coh)
 	if (rc != 0)
 		return rc;
 
-	for (i = 0; i < dbd->dbd_count &&
-	     !d_list_empty(&cont->vc_dtx_committed_list); i++) {
+	for (i = 0;
+	     i < dbd->dbd_count && !d_list_empty(&cont->vc_dtx_committed_list);
+	     ) {
 		struct vos_dtx_cmt_ent	*dce;
 		d_iov_t			 kiov;
 		umem_off_t		 umoff;
 
 		dce = d_list_entry(cont->vc_dtx_committed_list.next,
 				   struct vos_dtx_cmt_ent, dce_committed_link);
+		if (!dce->dce_rdonly)
+			i++;
+
 		umoff = DCE_OID_OFF(dce);
 		d_iov_set(&kiov, &DCE_XID(dce), sizeof(DCE_XID(dce)));
 		dbtree_delete(cont->vc_dtx_committed_hdl, BTR_PROBE_EQ,
@@ -2265,6 +2288,17 @@ vos_dtx_cleanup(struct dtx_handle *dth)
 
 	for (i = 0; i < max; i++)
 		vos_obj_evict_by_oid(vos_obj_cache_current(), cont, oids[i]);
+}
+
+int
+vos_dtx_pin(struct dtx_handle *dth)
+{
+	int	rc = 0;
+
+	if (dth->dth_ent == NULL)
+		rc = vos_dtx_alloc(dth, NULL);
+
+	return rc;
 }
 
 /** Allocate space for saving the vos reservations and deferred actions */
